@@ -15,8 +15,6 @@ public class Activate : MonoBehaviour
     {
         if (other.tag == "Block")
             isActivated = true;
-
-        Debug.Log(isActivated);
     }
 
     void OnTriggerExit(Collider other) 

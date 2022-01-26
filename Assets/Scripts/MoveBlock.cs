@@ -6,42 +6,107 @@ public class MoveBlock : MonoBehaviour
 {
     private Vector3 move;
     private Vector3 position;
+    private Vector3 velocity;
+    private Rigidbody rbody;
+    private List<Vector3> listInputs = new List<Vector3>();
 
-    public Vector3 lastPos;
-
-    public Vector3 lastPosPlayer;
-
+    private Vector3 goal;
     void Start()
     {
-        lastPos = new Vector3(0.0f, 0.0f, .0f);
+        rbody = GetComponent<Rigidbody>();
+        move = Vector3.zero;
+        goal = transform.position;
     }
+
+    void Update()
+    {
+        rbody.velocity = velocity;
+
+        if(transform.position.x < goal.x + 0.1f && transform.position.x > goal.x -0.1f && transform.position.z < goal.z + 0.1f && transform.position.z > goal.z -0.1f)
+            rbody.velocity = Vector3.zero;
+    }
+
     void OnCollisionEnter(Collision other) 
     {
-        move = other.collider.GetComponent<Player>().moveInput;
-        position = new Vector3();
-        if (move.x == 1.0f && transform.position.x < 15.0f)
+        GameObject collider = other.gameObject;
+        if(collider.tag ==  "Player")
         {
-            lastPos = transform.position;
-            position.x += 4.0f;
-        }   
-        else if (move.x == -1.0f && transform.position.x > -16.0f)
-        {
-            lastPos = transform.position;
-            position.x -= 4.0f;
-        }
-        else if(move.z == 1.0f && transform.position.z < 16.0f)
-        {
-            lastPos = transform.position;
-            position.z += 4.0f;
-        }
-            
-        else if(move.z == -1.0f && transform.position.z > -16.0f)
-        {
-            lastPos = transform.position;
-            position.z -= 4.0f;
+            move = collider.GetComponent<Player>().moveInput;
+
+            if (move.x == 1.0f && transform.position.x < 15.0f)
+            {
+                goal = transform.position;
+                goal.x += 4;
+                velocity = new Vector3(10.0f,.0f,.0f);
+            }   
+            else if(move.x == -1.0f && transform.position.x > -15.0f)
+            {
+                goal = transform.position;
+                goal.x = goal.x - 4.0f;
+                velocity = new Vector3(-10.0f,.0f,.0f);
+            }
+            else if(move.z == 1.0f && transform.position.z < 15.0f)
+            {
+                goal = transform.position;
+                goal.z = goal.z + 4.0f;
+                velocity = new Vector3(0.0f,.0f,10.0f);
+            }
+            else if(move.z == -1.0f && transform.position.z > -15.0f)
+            {
+                goal = transform.position;
+                goal.z = goal.z - 4.0f;
+                velocity = new Vector3(0.0f,.0f,-10.0f);
+            }
+
+            if (velocity != Vector3.zero)
+            {
+                listInputs.Add(move);
+                GameObject.Find("Canvas").GetComponent<GameManager>().listAllMovements.Add(this);
+            }
         }
 
-        transform.Translate(position);
+    }
+
+    public void UndoLastMove()
+    {
+        move = listInputs[listInputs.Count-1];
+        Vector3 newPlayerPos = Vector3.zero; 
+
+        if (move.x == 1.0f)
+            {
+                goal = transform.position;
+                goal.x = goal.x - 4.0f;
+                velocity = new Vector3(-10.0f,.0f,.0f);
+                newPlayerPos.x = goal.x - 3.0f;
+                newPlayerPos.z = goal.z;
+            }   
+            else if(move.x == -1.0f)
+            {
+                goal = transform.position;
+                goal.x = goal.x + 4.0f;
+                velocity = new Vector3(10.0f,.0f,.0f);
+                newPlayerPos.x = goal.x + 3.0f;
+                newPlayerPos.z = goal.z;
+            }
+            else if(move.z == 1.0f)
+            {
+                goal = transform.position;
+                goal.z = goal.z - 4.0f;
+                velocity = new Vector3(0.0f,.0f,-10.0f);
+                newPlayerPos.x = goal.x ;
+                newPlayerPos.z = goal.z - 3.0f;
+            }
+            else if(move.z == -1.0f)
+            {
+                goal = transform.position;
+                goal.z = goal.z + 4.0f;
+                velocity = new Vector3(0.0f,.0f,10.0f);
+                newPlayerPos.x = goal.x;
+                newPlayerPos.z = goal.z + 3.0f;
+            }
+        listInputs.RemoveAt(listInputs.Count - 1);
+        
+        GameObject.Find("Player").GetComponent<Player>().UndoMovement(newPlayerPos);
     }
 
 }

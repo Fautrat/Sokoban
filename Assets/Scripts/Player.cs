@@ -7,9 +7,10 @@ public class Player : MonoBehaviour
 {
     public float speed = 2;
     private Rigidbody rbody;
-    public Vector3 moveInput;
+    public Vector3 moveInput = Vector3.zero;
     private Animator animator;
     private SkinnedMeshRenderer mesh;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -21,7 +22,7 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //Debug.Log(rbody.velocity.x);
+        rbody.velocity = moveInput * speed;
         float speedX = Mathf.Abs(rbody.velocity.x);
         float speedZ = Mathf.Abs(rbody.velocity.z);
         animator.SetBool("isRunning" , false);
@@ -31,12 +32,36 @@ public class Player : MonoBehaviour
         }
         else
             animator.SetBool("isRunning" , false);
-
     }
 
-    public void playerMove(InputAction.CallbackContext context)
+    public void PlayerMove(InputAction.CallbackContext context)
     {
         moveInput = context.ReadValue<Vector3>();
-        rbody.velocity = moveInput * speed;
+        moveInput = moveInput.normalized;
+        
+        /* gestion de la rotation du personnage */
+        if(moveInput.x > 0.0f)
+            if(moveInput.z > 0.0f)
+                transform.rotation = Quaternion.LookRotation(new Vector3(-0.5f,0,0.5f));
+            else if(moveInput.z < 0.0f)
+                transform.rotation = Quaternion.LookRotation(new Vector3(0.5f,0,0.5f));
+            else
+                transform.rotation = Quaternion.LookRotation(Vector3.forward);
+        else if(moveInput.x < 0.0f)
+            if(moveInput.z > 0.0f)
+                transform.rotation = Quaternion.LookRotation(new Vector3(-0.5f,0,-0.5f));
+            else if(moveInput.z < 0.0f)
+                transform.rotation = Quaternion.LookRotation(new Vector3(0.5f,0,-0.5f));
+            else
+                transform.rotation = Quaternion.LookRotation(-Vector3.forward);
+        else if(moveInput.z > 0.0f)
+            transform.rotation = Quaternion.LookRotation(Vector3.left);
+        else if(moveInput.z < 0.0f)
+            transform.rotation = Quaternion.LookRotation(-Vector3.left);
+    }
+
+    public void UndoMovement(Vector3 newPos)
+    {
+        transform.position = newPos;
     }
 }

@@ -5,7 +5,8 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    public MoveBlock[] list;
+    public List<MoveBlock> listAllMovements = new List<MoveBlock>();
+
     public void onRestart()
     {
         Debug.Log("reload");
@@ -14,12 +15,10 @@ public class GameManager : MonoBehaviour
 
     public void onUndo()
     {
-        foreach(MoveBlock block in list)
+        if(listAllMovements.Count > 0)
         {
-            Debug.Log(block.lastPos);
-            if(block.lastPos.x != 0.0f)
-                block.transform.Translate(block.lastPos - block.transform.position);
-                //block.transform.Translate(block.transform.position + block.lastPos);
+            listAllMovements[listAllMovements.Count - 1].UndoLastMove();
+            listAllMovements.RemoveAt(listAllMovements.Count - 1);
         }
     }
 }
